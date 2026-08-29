@@ -2,13 +2,16 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useScrollAnimation } from "@/hooks/use-scroll-animation";
+import { motion, useScroll, useTransform, useInView } from "framer-motion";
 import {
   ArrowRight,
   BadgeCheck,
   CalendarCheck,
   Check,
+  ExternalLink,
   Instagram,
   Linkedin,
+  Lock,
   Mail,
   MapPin,
   Menu,
@@ -19,6 +22,7 @@ import {
   Search,
   ShieldCheck,
   Smartphone,
+  Sparkles,
   Star,
   TrendingUp,
   X,
@@ -44,6 +48,98 @@ import case1 from "@/assets/case-1.jpg";
 import case2 from "@/assets/case-2.jpg";
 import case3 from "@/assets/case-3.jpg";
 import { submitLead } from "@/lib/submit-lead.functions";
+
+// --- Framer Motion Utility Components ---
+
+function ScrubbingText({ text, className }: { text: string; className?: string }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start 85%", "center 45%"],
+  });
+
+  const words = text.split(" ");
+  return (
+    <div ref={containerRef} className={className}>
+      {words.map((word, i) => {
+        const start = i / words.length;
+        const end = start + (1 / words.length);
+        const opacity = useTransform(scrollYProgress, [start, end], [0.2, 1]);
+        
+        return (
+          <motion.span
+            key={i}
+            style={{ opacity }}
+            className="inline-block mr-[0.25em]"
+          >
+            {word}
+          </motion.span>
+        );
+      })}
+    </div>
+  );
+}
+
+function CinematicBlur({ children, delay = 0, className }: { children: React.ReactNode; delay?: number; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-10% 0px" });
+
+  return (
+    <motion.div
+      ref={ref}
+      className={className}
+      initial={{ filter: "blur(12px)", opacity: 0, scale: 0.95, y: 30 }}
+      animate={isInView ? { filter: "blur(0px)", opacity: 1, scale: 1, y: 0 } : {}}
+      transition={{ duration: 0.8, delay, ease: [0.16, 1, 0.3, 1] }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+function TypewriterText({ text, className }: { text: string; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-10% 0px" });
+
+  const words = text.split(" ");
+
+  const container = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.05, delayChildren: 0.2 },
+    },
+  };
+
+  const child = {
+    hidden: { opacity: 0, y: 10 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { type: "spring", stiffness: 100, damping: 15 },
+    },
+  };
+
+  return (
+    <motion.p
+      ref={ref}
+      variants={container as any}
+      initial="hidden"
+      animate={isInView ? "visible" : "hidden"}
+      className={className}
+    >
+      {words.map((word, index) => (
+        <motion.span
+          key={index}
+          variants={child as any}
+          className="inline-block mr-[0.25em]"
+        >
+          {word}
+        </motion.span>
+      ))}
+    </motion.p>
+  );
+}
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -477,7 +573,7 @@ function Hero() {
         <div className="absolute bottom-0 right-1/4 w-[200px] h-[200px] sm:w-[300px] sm:h-[300px] md:w-[400px] md:h-[400px] bg-primary/20 rounded-full blur-[60px] md:blur-[100px]" />
       </div>
       
-      <div className="mx-auto w-full max-w-7xl px-5 sm:px-6">
+      <div className="mx-auto w-full max-w-7xl px-5 sm:px-6 relative z-10">
         <div className="grid min-w-0 gap-10 sm:gap-12 lg:grid-cols-2 lg:gap-16 lg:items-center">
           {/* Texto */}
           <div className="flex min-w-0 flex-col items-center text-center lg:items-start lg:text-left order-1 mx-auto lg:mx-0">
@@ -490,21 +586,26 @@ function Hero() {
               />
             </div>
 
-            <h1 className="mt-0 max-w-full font-display text-[2.25rem] xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-[1.08] font-black tracking-tight">
-              Sites que fazem sua clínica <span className="text-primary">agendar mais</span>.
+            <Eyebrow className="mb-3 sm:mb-5">
+              ✦ Web Design & SEO para Dentistas
+            </Eyebrow>
+
+            <h1 className="mt-0 max-w-full font-display text-[2.25rem] xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-[1.08] font-black tracking-tight text-foreground">
+              Sites que fazem sua clínica <span className="bg-gradient-to-r from-primary via-emerald-600 to-teal-500 bg-clip-text text-transparent italic py-1 pr-[0.15em] -mr-[0.15em]">agendar mais</span>.
             </h1>
             {/* Parágrafo centralizado com boa largura de leitura no mobile */}
             <p className="mt-4 sm:mt-6 max-w-sm sm:max-w-xl text-sm sm:text-lg md:text-xl text-muted-foreground font-medium leading-relaxed">
               Transformamos visitantes em pacientes reais com design e estratégia pensados exclusivamente para o nicho odontológico.
             </p>
             <div className="mt-7 sm:mt-8 flex w-full max-w-xs sm:max-w-none flex-col sm:flex-row items-stretch sm:items-center justify-center lg:justify-start gap-3 sm:gap-4 md:mt-10">
-              <Button variant="cta" size="xl" className="w-full sm:w-auto" asChild>
+              <Button variant="cta" size="xl" className="w-full sm:w-auto relative overflow-hidden group shadow-xl shadow-primary/25 hover:shadow-primary/40 hover:scale-[1.02] transition-all" asChild>
                 <a href="#diagnostico" className="flex items-center justify-center gap-2">
-                  Quero meu diagnóstico gratuito
-                  <ArrowRight className="size-4 shrink-0" />
+                  <span className="relative z-10 font-black">Quero meu diagnóstico gratuito</span>
+                  <ArrowRight className="size-4 shrink-0 relative z-10 group-hover:translate-x-1 transition-transform" />
+                  <span className="absolute inset-0 -translate-x-full group-hover:animate-shimmer bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none" />
                 </a>
               </Button>
-              <Button variant="ghost" size="lg" className="w-full sm:w-auto text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-primary" asChild>
+              <Button variant="ghost" size="lg" className="w-full sm:w-auto text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors" asChild>
                 <a href="#cases" className="flex items-center justify-center gap-2">
                   Ver modelos
                   <ArrowRight className="size-4 shrink-0" />
@@ -517,17 +618,72 @@ function Hero() {
             </p>
           </div>
 
-          {/* Imagem (visível apenas em telas grandes/desktop) */}
-          <div className="relative min-w-0 group order-2 hidden lg:block">
-            <div className="absolute -inset-2 rounded-[2rem] bg-gradient-to-br from-primary/30 via-primary/10 to-transparent blur-xl opacity-60 group-hover:opacity-80 transition duration-1000" />
-            <div className="relative overflow-hidden rounded-2xl sm:rounded-[2rem] border border-border/50 shadow-2xl shadow-primary/5">
-              <img
-                src={heroImg}
-                alt="Dentista explicando diagnóstico para paciente em consultório odontológico"
-                className="w-full h-auto object-cover aspect-[16/10] sm:aspect-[4/3] lg:aspect-[4/4] transition-transform duration-700 group-hover:scale-[1.02]"
-                loading="eager"
-                decoding="async"
-              />
+          {/* Imagem: Mockup de Navegador com Badges Flutuantes */}
+          <div className="relative min-w-0 group order-2 mt-8 lg:mt-0 w-full max-w-md mx-auto lg:max-w-none block">
+            <div className="absolute -inset-4 rounded-[2.5rem] bg-gradient-to-br from-primary/25 via-teal-500/10 to-transparent blur-2xl opacity-70 group-hover:opacity-100 transition duration-1000 pointer-events-none animate-pulse-glow" />
+            
+            {/* Floating Badge: Top-Right (PageSpeed) */}
+            <div className="absolute -top-5 -right-5 z-20 hidden sm:flex items-center gap-2.5 rounded-2xl bg-white/95 px-4 py-2.5 shadow-2xl border border-primary/20 backdrop-blur-md animate-float">
+              <div className="flex size-8 items-center justify-center rounded-xl bg-primary/15 text-primary shadow-inner">
+                <Zap className="size-4.5 fill-primary" />
+              </div>
+              <div>
+                <p className="text-[11px] font-black text-foreground leading-tight">Google PageSpeed 99/100</p>
+                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Carregamento Instantâneo</p>
+              </div>
+            </div>
+
+            {/* Floating Badge: Bottom-Left (SEO Maps) */}
+            <div className="absolute -bottom-5 -left-5 z-20 hidden sm:flex items-center gap-2.5 rounded-2xl bg-white/95 px-4 py-2.5 shadow-2xl border border-primary/20 backdrop-blur-md animate-float-delayed">
+              <div className="flex size-8 items-center justify-center rounded-xl bg-emerald/15 text-emerald shadow-inner">
+                <MapPin className="size-4.5" />
+              </div>
+              <div>
+                <p className="text-[11px] font-black text-foreground leading-tight">SEO Local Ativado</p>
+                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">1º Lugar no Google Maps</p>
+              </div>
+            </div>
+
+            {/* Floating Pill: Center Right (Conversão WhatsApp) */}
+            <div className="absolute top-1/2 -right-4 -translate-y-1/2 z-20 hidden xl:flex items-center gap-2 rounded-full bg-navy/95 text-white px-3.5 py-1.5 shadow-xl border border-white/15 backdrop-blur-md animate-float-slow">
+              <div className="size-2 rounded-full bg-emerald animate-pulse" />
+              <span className="text-[10px] font-black tracking-wide">+42% Agendamentos no WhatsApp</span>
+            </div>
+
+            {/* Main Browser Mockup Window */}
+            <div className="relative overflow-hidden rounded-2xl sm:rounded-[2rem] border border-border/70 bg-card shadow-2xl shadow-primary/10">
+              {/* Browser Bar */}
+              <div className="flex items-center justify-between border-b border-border/60 bg-secondary/70 px-4 py-3 backdrop-blur-sm">
+                <div className="flex items-center gap-2">
+                  <div className="size-3 rounded-full bg-rose-400" />
+                  <div className="size-3 rounded-full bg-amber-400" />
+                  <div className="size-3 rounded-full bg-emerald-400" />
+                </div>
+                <div className="flex items-center gap-1.5 rounded-full bg-background/80 px-3.5 py-1 text-[10px] font-bold text-muted-foreground border border-border/60 shadow-xs max-w-[240px] truncate">
+                  <Lock className="size-3 text-emerald" />
+                  <span className="truncate">odontowebsites.com.br/modelos</span>
+                </div>
+                <div className="flex items-center gap-1 opacity-40">
+                  <div className="size-1.5 rounded-full bg-foreground" />
+                  <div className="size-1.5 rounded-full bg-foreground" />
+                  <div className="size-1.5 rounded-full bg-foreground" />
+                </div>
+              </div>
+
+              {/* Image inside mockup */}
+              <div className="relative aspect-[16/11] overflow-hidden bg-slate-900">
+                <img
+                  src={heroImg}
+                  alt="Dentista explicando diagnóstico para paciente em consultório odontológico"
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  loading="eager"
+                  decoding="async"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-navy/70 via-transparent to-transparent flex flex-col justify-end p-5">
+                  <span className="text-[9px] font-black uppercase tracking-[0.2em] text-primary">Layout Responsivo & Rápido</span>
+                  <p className="text-sm font-black text-white">Consultório Odontológico de Alto Padrão</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1004,36 +1160,38 @@ function FullPresence() {
 
       <div className="max-w-3xl mb-10 sm:mb-14">
         <Eyebrow className="mb-3 sm:mb-5">Mais que um site</Eyebrow>
-        <h2 className="font-display text-[1.75rem] xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-[1.1] text-foreground">
-          Só crio site? Não. Eu construo <span className="text-primary italic">toda a sua presença digital</span>.
-        </h2>
+        <ScrubbingText 
+          text="Só crio site? Não. Eu construo toda a sua presença digital."
+          className="font-display text-[1.75rem] xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-[1.1] text-foreground"
+        />
         <p className="mt-3 sm:mt-6 max-w-[42ch] sm:max-w-none text-sm sm:text-base md:text-lg text-muted-foreground font-medium leading-relaxed">
           Um site sozinho não resolve o problema todo. Por isso, cada projeto inclui tudo que sua clínica precisa para atrair, converter e fidelizar pacientes — sem você precisar contratar mais ninguém.
         </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        {pillars.map((pillar) => (
-          <div
-            key={pillar.title}
-            className="group relative flex flex-col justify-between p-6 sm:p-8 rounded-2xl sm:rounded-3xl border border-primary/10 bg-white/70 backdrop-blur-sm shadow-sm shadow-primary/5 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 hover:border-primary/30 hover:-translate-y-1.5 overflow-hidden"
-          >
-            {/* Glow de fundo no hover */}
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-            {/* Borda luminosa superior */}
-            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            <div className="relative z-10">
-              <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary mb-5 sm:mb-6 transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/15 group-hover:shadow-lg group-hover:shadow-primary/20">
-                <pillar.icon className="size-6" />
+        {pillars.map((pillar, i) => (
+          <CinematicBlur key={pillar.title} delay={i * 0.15}>
+            <div
+              className="group relative h-full flex flex-col justify-between p-6 sm:p-8 rounded-2xl sm:rounded-3xl border border-primary/10 bg-white/70 backdrop-blur-sm shadow-sm shadow-primary/5 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 hover:border-primary/30 hover:-translate-y-1.5 overflow-hidden"
+            >
+              {/* Glow de fundo no hover */}
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+              {/* Borda luminosa superior */}
+              <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="relative z-10">
+                <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary mb-5 sm:mb-6 transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/15 group-hover:shadow-lg group-hover:shadow-primary/20">
+                  <pillar.icon className="size-6" />
+                </div>
+                <h3 className="font-display text-lg sm:text-xl font-black text-foreground group-hover:text-primary transition-colors">
+                  {pillar.title}
+                </h3>
+                <p className="mt-2.5 sm:mt-3 text-xs sm:text-sm text-muted-foreground leading-relaxed font-medium">
+                  {pillar.desc}
+                </p>
               </div>
-              <h3 className="font-display text-lg sm:text-xl font-black text-foreground group-hover:text-primary transition-colors">
-                {pillar.title}
-              </h3>
-              <p className="mt-2.5 sm:mt-3 text-xs sm:text-sm text-muted-foreground leading-relaxed font-medium">
-                {pillar.desc}
-              </p>
             </div>
-          </div>
+          </CinematicBlur>
         ))}
       </div>
     </Section>
@@ -1048,47 +1206,72 @@ function Developer() {
         <div className="flex flex-col items-start">
           <Eyebrow className="mb-4 sm:mb-6">Sobre o Desenvolvedor</Eyebrow>
           <h2 className="font-display text-2xl xs:text-3xl sm:text-4xl md:text-5xl font-black tracking-tight leading-[1.15] text-foreground">
-            Meu nome é <span className="text-primary">Giovanni Pinheiro</span>, sou desenvolvedor e crio sites profissionais para clínicas.
+            Meu nome é <span className="bg-gradient-to-r from-primary via-emerald-600 to-teal-500 bg-clip-text text-transparent">Giovanni Pinheiro</span>, sou desenvolvedor e crio sites profissionais para clínicas.
           </h2>
           
-          <div className="mt-5 sm:mt-6 space-y-4 text-sm sm:text-base md:text-lg text-muted-foreground font-medium leading-relaxed max-w-xl">
-            <p>
-              Crio sites profissionais para clínicas e profissionais da área da saúde que querem se destacar no digital.
-            </p>
-            <p>
-              Não trabalho só com &ldquo;deixar bonito&rdquo;. Cada site que eu desenvolvo é pensado pra transmitir confiança logo no primeiro acesso e facilitar ao máximo o caminho do paciente até o agendamento — porque um site bonito que não converte não resolve o problema real da clínica.
-            </p>
-            <p>
-              Uno design, tecnologia e estratégia num processo personalizado: entendo a identidade, o público e os objetivos de cada clínica antes de colocar a mão no código.
-            </p>
-            <p className="font-black text-foreground text-base sm:text-lg pt-3 border-t border-border/40">
-              Se você chegou até aqui, é porque já está pensando em melhorar a presença digital da sua clínica. Vamos conversar sobre isso?
-            </p>
+          <div className="mt-5 sm:mt-6 space-y-4 max-w-xl">
+            <TypewriterText 
+              text="Crio sites profissionais para clínicas e profissionais da área da saúde que querem se destacar no digital." 
+              className="text-sm sm:text-base md:text-lg text-muted-foreground font-medium leading-relaxed" 
+            />
+            <TypewriterText 
+              text="Não trabalho só com “deixar bonito”. Cada site que eu desenvolvo é pensado pra transmitir confiança logo no primeiro acesso e facilitar ao máximo o caminho do paciente até o agendamento — porque um site bonito que não converte não resolve o problema real da clínica." 
+              className="text-sm sm:text-base md:text-lg text-muted-foreground font-medium leading-relaxed" 
+            />
+            <TypewriterText 
+              text="Uno design, tecnologia e estratégia num processo personalizado: entendo a identidade, o público e os objetivos de cada clínica antes de colocar a mão no código." 
+              className="text-sm sm:text-base md:text-lg text-muted-foreground font-medium leading-relaxed" 
+            />
+            <TypewriterText 
+              text="Se você chegou até aqui, é porque já está pensando em melhorar a presença digital da sua clínica. Vamos conversar sobre isso?" 
+              className="font-black text-foreground text-base sm:text-lg pt-3 border-t border-border/40 leading-relaxed" 
+            />
           </div>
 
           <div className="mt-8 sm:mt-10 w-full sm:w-auto">
-            <Button variant="cta" size="xl" className="w-full sm:w-auto" asChild>
+            <Button variant="cta" size="xl" className="w-full sm:w-auto relative overflow-hidden group shadow-xl shadow-primary/25 hover:shadow-primary/40 hover:scale-[1.02] transition-all" asChild>
               <a href="#diagnostico" className="flex items-center justify-center gap-2">
-                Falar com o desenvolvedor
-                <ArrowRight className="size-4 shrink-0" />
+                <span className="relative z-10 font-black">Falar com o desenvolvedor</span>
+                <ArrowRight className="size-4 shrink-0 relative z-10 group-hover:translate-x-1 transition-transform" />
+                <span className="absolute inset-0 -translate-x-full group-hover:animate-shimmer bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none" />
               </a>
             </Button>
           </div>
         </div>
 
-        {/* Coluna Direita: Foto do desenvolvedor */}
+        {/* Coluna Direita: Foto do desenvolvedor com Badges Flutuantes */}
         <div className="relative group">
-          <div className="absolute -inset-2 rounded-[2.5rem] bg-gradient-to-br from-primary/30 via-primary/10 to-transparent blur-2xl opacity-60 group-hover:opacity-80 transition duration-1000 pointer-events-none" />
-          <div className="relative aspect-[3/4] sm:aspect-[4/5] overflow-hidden rounded-2xl sm:rounded-[3rem] border border-border/50 bg-card shadow-2xl">
+          <div className="absolute -inset-4 rounded-[3.5rem] bg-gradient-to-br from-primary/30 via-primary/10 to-transparent blur-2xl opacity-60 group-hover:opacity-80 transition duration-1000 pointer-events-none animate-pulse-glow" />
+          
+          {/* Floating Pill: Top Right */}
+          <div className="absolute -top-4 -right-2 sm:-right-4 z-20 flex items-center gap-2 rounded-2xl bg-white/95 px-3.5 py-2 shadow-xl border border-primary/20 backdrop-blur-md animate-float">
+            <div className="flex size-7 items-center justify-center rounded-xl bg-primary/15 text-primary">
+              <Sparkles className="size-3.5 fill-primary" />
+            </div>
+            <p className="text-[11px] font-black text-foreground">Atendimento 100% Direto</p>
+          </div>
+
+          {/* Floating Pill: Bottom Left */}
+          <div className="absolute -bottom-4 -left-2 sm:-left-4 z-20 flex items-center gap-2 rounded-2xl bg-white/95 px-3.5 py-2 shadow-xl border border-primary/20 backdrop-blur-md animate-float-delayed">
+            <div className="flex size-7 items-center justify-center rounded-xl bg-emerald/15 text-emerald">
+              <Zap className="size-3.5 fill-emerald" />
+            </div>
+            <div>
+              <p className="text-[11px] font-black text-foreground">Código Puro em React</p>
+              <p className="text-[9px] font-bold text-muted-foreground uppercase">Zero WordPress pesado</p>
+            </div>
+          </div>
+
+          <div className="relative aspect-[3/4] sm:aspect-[4/5] overflow-hidden rounded-2xl sm:rounded-[3rem] border border-border/60 bg-card shadow-2xl">
             <img 
               src={developerImg} 
-              alt="Desenvolvedor de Sites Odontológicos" 
+              alt="Giovanni Pinheiro - Desenvolvedor de Sites Odontológicos" 
               className="h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
               loading="lazy"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-navy/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-6 sm:p-8">
-              <p className="font-display text-lg font-black text-white">Especialista em Web Odontológica</p>
-              <p className="text-xs text-primary font-bold uppercase tracking-wider">Design, Tecnologia & Estratégia</p>
+            <div className="absolute inset-0 bg-gradient-to-t from-navy/85 via-navy/20 to-transparent opacity-90 transition-opacity flex flex-col justify-end p-6 sm:p-8">
+              <p className="font-display text-lg sm:text-xl font-black text-white">Giovanni Pinheiro</p>
+              <p className="text-xs text-primary font-bold uppercase tracking-wider">Web Designer & Desenvolvedor Sênior</p>
             </div>
           </div>
         </div>
@@ -1221,34 +1404,61 @@ function Cases() {
 
       {/* Carrossel 100% Full Width com animação de Looping Contínuo */}
       <div className="w-full overflow-hidden">
-        <div className="animate-scroll pause-scroll py-3 flex gap-4 sm:gap-6 hover:[animation-play-state:paused] active:[animation-play-state:paused] touch-pan-x">
+        <div className="animate-scroll pause-scroll py-3 flex gap-5 sm:gap-7 hover:[animation-play-state:paused] active:[animation-play-state:paused] touch-pan-x">
           {displayProjects.map((project, i) => {
             const CardContent = (
               <div className="w-[280px] xs:w-[320px] sm:w-[380px] md:w-[440px] shrink-0 group relative cursor-pointer select-none">
-                <div className="aspect-[4/3] sm:aspect-[4/5] overflow-hidden rounded-2xl sm:rounded-[2.5rem] border border-border/50 bg-card shadow-lg transition-all duration-300 group-hover:shadow-2xl group-hover:-translate-y-1 relative">
-                  <img 
-                    src={project.image} 
-                    alt={project.title} 
-                    className="h-full w-full object-cover grayscale-[0.1] group-hover:grayscale-0 transition-all duration-700 pointer-events-none select-none" 
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-navy/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-5 sm:p-8 pointer-events-none">
-                    {project.link && (
-                      <div className="absolute top-5 right-5 flex size-9 sm:size-10 items-center justify-center rounded-full bg-primary text-white scale-0 group-hover:scale-100 transition-transform duration-300 shadow-lg">
-                        <ArrowRight className="size-4 sm:size-5" />
+                <div className="overflow-hidden rounded-2xl sm:rounded-[2rem] border border-border/70 bg-card shadow-md transition-all duration-500 group-hover:shadow-2xl group-hover:border-primary/40 group-hover:-translate-y-2 relative">
+                  {/* Mini Browser Bar */}
+                  <div className="flex items-center justify-between border-b border-border/50 bg-secondary/80 px-3.5 py-2.5 backdrop-blur-xs">
+                    <div className="flex items-center gap-1.5">
+                      <div className="size-2.5 rounded-full bg-rose-400/80" />
+                      <div className="size-2.5 rounded-full bg-amber-400/80" />
+                      <div className="size-2.5 rounded-full bg-emerald-400/80" />
+                    </div>
+                    <div className="flex items-center gap-1 rounded-full bg-white px-2.5 py-0.5 text-[9px] font-bold text-muted-foreground border border-border/60 shadow-xs max-w-[170px] truncate">
+                      <Lock className="size-2.5 text-emerald" />
+                      <span className="truncate">{project.title.toLowerCase().replace(/[^a-z0-9]/g, '')}.com.br</span>
+                    </div>
+                    <div className="size-2" />
+                  </div>
+
+                  {/* Case Preview Image */}
+                  <div className="aspect-[4/3] sm:aspect-[4/4.5] overflow-hidden relative bg-slate-900">
+                    <img 
+                      src={project.image} 
+                      alt={project.title} 
+                      className="h-full w-full object-cover grayscale-[0.08] group-hover:grayscale-0 transition-all duration-700 pointer-events-none select-none group-hover:scale-105" 
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-navy/90 via-navy/30 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col justify-end p-5 sm:p-7 pointer-events-none">
+                      {project.link && (
+                        <div className="absolute top-4 right-4 flex items-center gap-1.5 rounded-full bg-primary px-3 py-1 text-white text-[10px] font-black uppercase tracking-wider scale-90 group-hover:scale-100 transition-transform duration-300 shadow-lg">
+                          <span>Testar ao vivo</span>
+                          <ExternalLink className="size-3" />
+                        </div>
+                      )}
+                      <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-primary">{project.category}</span>
+                      <p className="mt-1 font-display text-base sm:text-xl font-black text-white leading-tight">{project.results}</p>
+                      <div className="mt-3 inline-flex items-center gap-1.5 text-[10px] font-bold text-white/80">
+                        <span>Clique para abrir a demonstração</span>
+                        <ArrowRight className="size-3" />
                       </div>
-                    )}
-                    <p className="font-display text-base sm:text-xl font-black text-white leading-tight">{project.results}</p>
-                    <p className="mt-1.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-white/70">{project.category}</p>
-                    <p className="mt-3 text-[8px] font-medium text-white/50 italic">Clique para ver o modelo</p>
+                    </div>
                   </div>
                 </div>
-                <div className="mt-3 sm:mt-4 flex items-center justify-between px-1">
+                
+                {/* Card Footer Info */}
+                <div className="mt-3 sm:mt-3.5 flex items-center justify-between px-1.5">
                   <div>
                     <h3 className="font-display text-base sm:text-lg font-black text-foreground group-hover:text-primary transition-colors">{project.title}</h3>
-                    <p className="text-xs text-primary font-bold">{project.category}</p>
+                    <p className="text-xs text-muted-foreground font-medium">{project.category}</p>
                   </div>
-                  {project.link && <ArrowRight className="size-4 sm:size-5 text-primary opacity-60 group-hover:opacity-100 group-hover:translate-x-1 transition-all shrink-0" />}
+                  {project.link && (
+                    <div className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-all">
+                      <ArrowRight className="size-4 group-hover:translate-x-0.5 transition-transform" />
+                    </div>
+                  )}
                 </div>
               </div>
             );
@@ -1365,7 +1575,7 @@ function Pricing() {
       ideal: "Seja a referência máxima do bairro.",
       cta: "Quero esse pacote",
       highlight: true,
-      badge: "Mais escolhido",
+      badge: "★ Mais Escolhido por Dentistas",
     },
     {
       name: "Elite",
@@ -1388,11 +1598,15 @@ function Pricing() {
       <div className="mb-8 sm:mb-12 max-w-3xl">
         <Eyebrow className="mb-3 sm:mb-5">Investimento</Eyebrow>
         <h2 className="font-display text-[1.75rem] xs:text-3xl sm:text-4xl md:text-6xl font-black tracking-tight leading-[1.1] text-foreground text-balance">
-          Investimento pensado para o <span className="text-primary italic">seu tamanho</span>.
+          Investimento pensado para o <span className="bg-gradient-to-r from-primary via-emerald-600 to-teal-500 bg-clip-text text-transparent italic">seu tamanho</span>.
         </h2>
         <p className="mt-3 sm:mt-5 max-w-[46ch] sm:max-w-2xl text-sm sm:text-base md:text-lg text-muted-foreground font-medium leading-relaxed">
-          Faça as contas: <span className="font-bold text-foreground">1 único paciente</span> de implante, faceta ou protocolo já cobre 100% do projeto. Sem mensalidades forçadas — o site é um ativo permanente no seu nome.
+          Sem mensalidades ocultas nem surpresas: seu site é um ativo 100% de sua propriedade.
         </p>
+        <div className="mt-5 inline-flex items-center gap-2.5 px-4 py-2 rounded-2xl bg-primary/10 border border-primary/20 text-xs font-bold text-foreground">
+          <Sparkles className="size-4 text-primary shrink-0" />
+          <span><strong className="text-primary font-black">Retorno rápido:</strong> 1 único paciente de implante ou faceta já cobre 100% do projeto.</span>
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 sm:gap-8 mb-8 sm:mb-12 py-4 sm:py-6 border-y border-border/50">
@@ -1408,50 +1622,56 @@ function Pricing() {
       </div>
 
       <div className="grid gap-5 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 items-stretch">
-        {tiers.map((tier) => (
-          <div
-            key={tier.name}
-            className={`flex flex-col rounded-2xl sm:rounded-[2rem] p-5 sm:p-7 md:p-8 transition-all duration-300 hover:-translate-y-1 ${
-              tier.highlight
-                ? "bg-navy text-off-white shadow-2xl ring-2 ring-primary z-10"
-                : "bg-card border border-border shadow-sm"
-            }`}
-          >
-            {tier.badge && (
-              <div className="mb-4 self-start bg-primary px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest text-primary-foreground">
-                {tier.badge}
+        {tiers.map((tier, i) => (
+          <CinematicBlur key={tier.name} delay={i * 0.15} className="h-full">
+            <div
+              className={`flex flex-col h-full rounded-2xl sm:rounded-[2rem] p-5 sm:p-7 md:p-8 transition-all duration-300 hover:-translate-y-1.5 ${
+                tier.highlight
+                  ? "bg-navy text-off-white shadow-2xl shadow-primary/20 ring-2 ring-primary relative overflow-hidden group"
+                  : "bg-card border border-border shadow-sm hover:border-primary/30"
+              }`}
+            >
+              {tier.badge && (
+                <div className="mb-4 self-start bg-gradient-to-r from-primary to-teal-500 px-3.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest text-primary-foreground shadow-md">
+                  {tier.badge}
+                </div>
+              )}
+              <div className="mb-6">
+                <h3 className="font-display text-lg sm:text-xl font-black mb-1">{tier.name}</h3>
+                <p className="font-display text-xl sm:text-2xl font-black text-primary">{tier.price}</p>
               </div>
-            )}
-            <div className="mb-6">
-              <h3 className="font-display text-lg sm:text-xl font-black mb-1">{tier.name}</h3>
-              <p className="font-display text-xl sm:text-2xl font-black text-primary">{tier.price}</p>
+              <ul className="space-y-3.5 mb-6 flex-grow">
+                {tier.features.map((f) => (
+                  <li key={f.label} className="flex items-start gap-2.5 text-xs sm:text-sm font-medium">
+                    {f.included ? (
+                      <Check className="size-4 text-primary shrink-0 mt-0.5" />
+                    ) : (
+                      <span className="text-muted-foreground/30 shrink-0 mt-0.5">—</span>
+                    )}
+                    <span className={f.included ? "" : "text-muted-foreground/40"}>{f.label}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-auto pt-5 border-t border-border/20">
+                <p className="text-[9px] font-bold uppercase tracking-widest opacity-60 mb-5 leading-relaxed">
+                  {tier.ideal}
+                </p>
+                <Button
+                  variant={tier.highlight ? "cta" : "default"}
+                  size="xl"
+                  className="w-full relative overflow-hidden group"
+                  asChild
+                >
+                  <a href="#diagnostico">
+                    <span className="relative z-10">{tier.cta}</span>
+                    {tier.highlight && (
+                      <span className="absolute inset-0 -translate-x-full group-hover:animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
+                    )}
+                  </a>
+                </Button>
+              </div>
             </div>
-            <ul className="space-y-3.5 mb-6 flex-grow">
-              {tier.features.map((f) => (
-                <li key={f.label} className="flex items-start gap-2.5 text-xs sm:text-sm font-medium">
-                  {f.included ? (
-                    <Check className="size-4 text-primary shrink-0 mt-0.5" />
-                  ) : (
-                    <span className="text-muted-foreground/30 shrink-0 mt-0.5">—</span>
-                  )}
-                  <span className={f.included ? "" : "text-muted-foreground/40"}>{f.label}</span>
-                </li>
-              ))}
-            </ul>
-            <div className="mt-auto pt-5 border-t border-border/20">
-              <p className="text-[9px] font-bold uppercase tracking-widest opacity-60 mb-5 leading-relaxed">
-                {tier.ideal}
-              </p>
-              <Button
-                variant={tier.highlight ? "cta" : "default"}
-                size="xl"
-                className="w-full"
-                asChild
-              >
-                <a href="#diagnostico">{tier.cta}</a>
-              </Button>
-            </div>
-          </div>
+          </CinematicBlur>
         ))}
       </div>
     </Section>
@@ -1606,15 +1826,15 @@ function LeadForm() {
     <Section id="diagnostico" className="relative overflow-hidden bg-transparent text-navy">
       <div className="grid gap-8 sm:gap-12 lg:gap-20 lg:grid-cols-[1fr_1.1fr]">
         <div>
-          <Eyebrow className="mb-6 sm:mb-8">CTA Final</Eyebrow>
+          <Eyebrow className="mb-6 sm:mb-8">Diagnóstico Gratuito</Eyebrow>
           <h2 className="font-display text-2xl xs:text-3xl sm:text-4xl md:text-6xl font-black tracking-tight leading-[1.1] text-foreground text-balance">
-            Vamos lotar sua <span className="text-primary italic text-balance">agenda</span>?
+            Vamos lotar sua <span className="bg-gradient-to-r from-primary via-emerald-600 to-teal-500 bg-clip-text text-transparent italic text-balance">agenda</span>?
           </h2>
           <p className="mt-4 sm:mt-6 text-sm sm:text-lg text-muted-foreground font-medium leading-relaxed">
-            Preencha o formulário e receba um diagnóstico gratuito da sua presença digital em 24h.
+            Preencha o formulário e receba um diagnóstico gratuito da sua presença digital em 24h úteis.
           </p>
           <div className="mt-6 sm:mt-12 pt-6 sm:pt-8 border-t border-border">
-            <a href={WHATSAPP_DIAGNOSTICO} target="_blank" rel="noopener noreferrer" className="group inline-flex items-center gap-3 sm:gap-4 text-sm sm:text-base md:text-lg font-black tracking-tight text-primary">
+            <a href={WHATSAPP_DIAGNOSTICO} target="_blank" rel="noopener noreferrer" className="group inline-flex items-center gap-3 sm:gap-4 text-sm sm:text-base md:text-lg font-black tracking-tight text-primary hover:text-emerald-700 transition-colors">
               <div className="flex size-10 sm:size-12 items-center justify-center rounded-full bg-primary/10 group-hover:bg-primary group-hover:text-primary-foreground transition-all shrink-0">
                 <MessageCircle className="size-5 sm:size-6" />
               </div>
@@ -1624,34 +1844,35 @@ function LeadForm() {
         </div>
 
         <div className="relative group">
-          <div className="absolute -inset-1 rounded-2xl sm:rounded-[3rem] bg-gradient-to-br from-primary/50 to-transparent blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
-          <form onSubmit={handleSubmit} className="relative rounded-2xl sm:rounded-[2.5rem] border border-border bg-card p-5 sm:p-8 md:p-12 shadow-2xl">
+          <div className="absolute -inset-1 rounded-2xl sm:rounded-[3rem] bg-gradient-to-br from-primary/50 to-transparent blur-xl opacity-20 group-hover:opacity-40 transition duration-1000"></div>
+          <form onSubmit={handleSubmit} className="relative rounded-2xl sm:rounded-[2.5rem] border border-border/80 bg-card p-5 sm:p-8 md:p-12 shadow-2xl">
             <div className="grid gap-4 sm:gap-5">
               <div className="grid gap-1.5">
                 <Label htmlFor="nome" className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70">Seu nome</Label>
-                <Input id="nome" name="nome" value={fields.nome} onChange={handleChange} placeholder="Dra. Marina Salles" className={`h-11 sm:h-12 rounded-xl border-border/50 bg-secondary/30 focus:border-primary px-3.5 text-sm sm:text-base${errors.nome ? " border-destructive" : ""}`} />
+                <Input id="nome" name="nome" value={fields.nome} onChange={handleChange} placeholder="Dr(a). Seu Nome" className={`h-11 sm:h-12 rounded-xl border-border/70 bg-secondary/30 focus:border-primary focus:ring-2 focus:ring-primary/20 px-3.5 text-sm sm:text-base transition-all${errors.nome ? " border-destructive" : ""}`} />
                 {errors.nome && <p className="text-[11px] text-destructive font-semibold">{errors.nome}</p>}
               </div>
               <div className="grid gap-1.5">
                 <Label htmlFor="clinica" className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70">Nome da clínica</Label>
-                <Input id="clinica" name="clinica" value={fields.clinica} onChange={handleChange} placeholder="Clínica Sorriso Vivo" className={`h-11 sm:h-12 rounded-xl border-border/50 bg-secondary/30 focus:border-primary px-3.5 text-sm sm:text-base${errors.clinica ? " border-destructive" : ""}`} />
+                <Input id="clinica" name="clinica" value={fields.clinica} onChange={handleChange} placeholder="Clínica Sorriso Vivo" className={`h-11 sm:h-12 rounded-xl border-border/70 bg-secondary/30 focus:border-primary focus:ring-2 focus:ring-primary/20 px-3.5 text-sm sm:text-base transition-all${errors.clinica ? " border-destructive" : ""}`} />
                 {errors.clinica && <p className="text-[11px] text-destructive font-semibold">{errors.clinica}</p>}
               </div>
               <div className="grid gap-1.5">
                 <Label htmlFor="whatsapp" className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70">WhatsApp</Label>
-                <Input id="whatsapp" name="whatsapp" value={fields.whatsapp} onChange={handleChange} type="tel" placeholder="(11) 99999-9999" className={`h-11 sm:h-12 rounded-xl border-border/50 bg-secondary/30 focus:border-primary px-3.5 text-sm sm:text-base${errors.whatsapp ? " border-destructive" : ""}`} />
+                <Input id="whatsapp" name="whatsapp" value={fields.whatsapp} onChange={handleChange} type="tel" placeholder="(11) 99999-9999" className={`h-11 sm:h-12 rounded-xl border-border/70 bg-secondary/30 focus:border-primary focus:ring-2 focus:ring-primary/20 px-3.5 text-sm sm:text-base transition-all${errors.whatsapp ? " border-destructive" : ""}`} />
                 {errors.whatsapp && <p className="text-[11px] text-destructive font-semibold">{errors.whatsapp}</p>}
               </div>
               <div className="grid gap-1.5">
-                <Label htmlFor="dor" className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70">Sua maior dor com o site?</Label>
-                <Input id="dor" name="dor" value={fields.dor} onChange={handleChange} placeholder="Ex: Não traz agendamentos" className={`h-11 sm:h-12 rounded-xl border-border/50 bg-secondary/30 focus:border-primary px-3.5 text-sm sm:text-base${errors.dor ? " border-destructive" : ""}`} />
+                <Label htmlFor="dor" className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70">Sua maior dor hoje?</Label>
+                <Input id="dor" name="dor" value={fields.dor} onChange={handleChange} placeholder="Ex: Poucos agendamentos de tratamentos de alto valor" className={`h-11 sm:h-12 rounded-xl border-border/70 bg-secondary/30 focus:border-primary focus:ring-2 focus:ring-primary/20 px-3.5 text-sm sm:text-base transition-all${errors.dor ? " border-destructive" : ""}`} />
                 {errors.dor && <p className="text-[11px] text-destructive font-semibold">{errors.dor}</p>}
               </div>
-              <Button type="submit" variant="cta" size="xl" disabled={sending} className="w-full mt-2">
-                {sending ? "Enviando..." : "Enviar e receber meu diagnóstico"}
+              <Button type="submit" variant="cta" size="xl" disabled={sending} className="w-full mt-2 relative overflow-hidden group shadow-lg shadow-primary/20">
+                <span className="relative z-10">{sending ? "Enviando..." : "Enviar e receber meu diagnóstico"}</span>
+                <span className="absolute inset-0 -translate-x-full group-hover:animate-shimmer bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none" />
               </Button>
               <p className="text-center text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground/50">
-                Retorno em até 24h úteis.
+                Retorno garantido em até 24h úteis.
               </p>
             </div>
           </form>

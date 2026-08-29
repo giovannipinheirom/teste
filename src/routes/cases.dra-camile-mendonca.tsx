@@ -624,8 +624,8 @@ function CaseCamileMendonca() {
             <div className="lg:col-span-6 flex flex-col items-center">
               <div className="relative w-full max-w-[480px] aspect-[4/4.8] rounded-xs overflow-hidden shadow-2xl bg-neutral-900 group">
                 <img
-                  src={currentMember.image}
-                  alt={`${currentMember.prefix} ${currentMember.name}`}
+                  src={currentMember?.image}
+                  alt={`${currentMember?.prefix} ${currentMember?.name}`}
                   className="w-full h-full object-cover object-top filter brightness-[0.98] transition-all duration-500"
                 />
 
@@ -656,9 +656,9 @@ function CaseCamileMendonca() {
 
                 <div className="absolute inset-x-0 bottom-0 pt-20 pb-6 sm:pb-8 px-4 sm:px-6 bg-gradient-to-t from-[#e4cbbe] via-[#e4cbbe]/80 to-transparent flex flex-col justify-end">
                   <div className="text-[#0f1d2e] flex flex-wrap items-baseline gap-1.5 sm:gap-2">
-                    <span className="text-2xl xs:text-3xl sm:text-4xl font-light tracking-tight">{currentMember.prefix}</span>
+                    <span className="text-2xl xs:text-3xl sm:text-4xl font-light tracking-tight">{currentMember?.prefix}</span>
                     <span className="text-2xl xs:text-3xl sm:text-4xl font-extrabold tracking-tight">
-                      {currentMember.name}
+                      {currentMember?.name}
                     </span>
                   </div>
                 </div>
