@@ -1,7 +1,17 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import * as fs from "node:fs";
+import * as fs from "node:fs/promises";
 import * as path from "node:path";
+
+// ─── Utility: Escape HTML ──────────────────────────────────────────────────
+function escapeHtml(unsafe: string) {
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
 
 // ─── Validation schema ────────────────────────────────────────────────────────
 const LeadSchema = z.object({
@@ -18,28 +28,32 @@ const LeadSchema = z.object({
 
 export type LeadInput = z.infer<typeof LeadSchema>;
 
+// Basic in-memory rate limit (Reset server = reset limits)
+const rateLimits = new Map<string, number>();
+
 // ─── Server function ──────────────────────────────────────────────────────────
 export const submitLead = createServerFn({ method: "POST" })
   .validator((data: unknown) => LeadSchema.parse(data))
   .handler(async ({ data }) => {
-    // 1. Save to leads.json
+    // Very basic rate limiting based on WhatsApp number
+    const now = Date.now();
+    const lastSubmit = rateLimits.get(data.whatsapp);
+    if (lastSubmit && now - lastSubmit < 60000) {
+      throw new Error("Muitas requisições. Tente novamente em 1 minuto.");
+    }
+    rateLimits.set(data.whatsapp, now);
+
+    // 1. Save to leads.json (using append to avoid race conditions and blocking)
     try {
-      const leadsFile = path.resolve(process.cwd(), "leads.json");
-      let leads: Array<Record<string, unknown>> = [];
-
-      if (fs.existsSync(leadsFile)) {
-        const raw = fs.readFileSync(leadsFile, "utf-8");
-        leads = JSON.parse(raw) as Array<Record<string, unknown>>;
-      }
-
-      leads.push({
+      const leadsFile = path.resolve(process.cwd(), "leads.jsonl"); // using jsonl (JSON Lines) is safer for append
+      const newEntry = JSON.stringify({
         ...data,
         created_at: new Date().toISOString(),
-      });
-
-      fs.writeFileSync(leadsFile, JSON.stringify(leads, null, 2), "utf-8");
+      }) + "\n";
+      
+      await fs.appendFile(leadsFile, newEntry, "utf-8");
     } catch (fsError) {
-      console.error("[submitLead] Failed to write leads.json:", fsError);
+      console.error("[submitLead] Failed to append to leads.jsonl:", fsError);
     }
 
     // 2. Send email via Resend
@@ -47,6 +61,11 @@ export const submitLead = createServerFn({ method: "POST" })
     const NOTIFY_EMAIL = process.env["NOTIFY_EMAIL"] ?? "gi.pinheirooo@outlook.com";
 
     if (RESEND_API_KEY) {
+      const safeNome = escapeHtml(data.nome);
+      const safeClinica = escapeHtml(data.clinica);
+      const safeWhatsApp = escapeHtml(data.whatsapp);
+      const safeDor = escapeHtml(data.dor);
+
       try {
         const res = await fetch("https://api.resend.com/emails", {
           method: "POST",
@@ -57,8 +76,8 @@ export const submitLead = createServerFn({ method: "POST" })
           body: JSON.stringify({
             from: "Leads <onboarding@resend.dev>",
             to: [NOTIFY_EMAIL],
-            subject: `🦷 Novo lead: ${data.nome} — ${data.clinica}`,
-            html: `<div style="font-family: sans-serif; max-width: 520px; margin: 0 auto; padding: 32px 24px; background: #f9f9f9; border-radius: 12px;"><h2 style="margin: 0 0 24px; font-size: 22px; color: #111;">🦷 Novo lead do formulário</h2><table style="width: 100%; border-collapse: collapse;"><tr><td style="padding: 10px 0; color: #555; font-size: 13px; width: 110px; font-weight: 600;">Nome</td><td style="padding: 10px 0; color: #111; font-size: 15px;">${data.nome}</td></tr><tr style="border-top: 1px solid #e5e5e5;"><td style="padding: 10px 0; color: #555; font-size: 13px; font-weight: 600;">Clínica</td><td style="padding: 10px 0; color: #111; font-size: 15px;">${data.clinica}</td></tr><tr style="border-top: 1px solid #e5e5e5;"><td style="padding: 10px 0; color: #555; font-size: 13px; font-weight: 600;">WhatsApp</td><td style="padding: 10px 0; font-size: 15px;"><a href="https://wa.me/55${data.whatsapp.replace(/\D/g, "")}" style="color: #16a34a; font-weight: 600;">${data.whatsapp}</a></td></tr><tr style="border-top: 1px solid #e5e5e5;"><td style="padding: 10px 0; color: #555; font-size: 13px; font-weight: 600;">Maior dor</td><td style="padding: 10px 0; color: #111; font-size: 15px;">${data.dor}</td></tr><tr style="border-top: 1px solid #e5e5e5;"><td style="padding: 10px 0; color: #555; font-size: 13px; font-weight: 600;">Recebido em</td><td style="padding: 10px 0; color: #777; font-size: 13px;">${new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}</td></tr></table><div style="margin-top: 28px; text-align: center;"><a href="https://wa.me/55${data.whatsapp.replace(/\D/g, "")}" style="display: inline-block; padding: 14px 28px; background: #16a34a; color: #fff; border-radius: 8px; font-weight: 700; font-size: 15px;">Abrir WhatsApp do lead</a></div></div>`,
+            subject: `🦷 Novo lead: ${safeNome} — ${safeClinica}`,
+            html: `<div style="font-family: sans-serif; max-width: 520px; margin: 0 auto; padding: 32px 24px; background: #f9f9f9; border-radius: 12px;"><h2 style="margin: 0 0 24px; font-size: 22px; color: #111;">🦷 Novo lead do formulário</h2><table style="width: 100%; border-collapse: collapse;"><tr><td style="padding: 10px 0; color: #555; font-size: 13px; width: 110px; font-weight: 600;">Nome</td><td style="padding: 10px 0; color: #111; font-size: 15px;">${safeNome}</td></tr><tr style="border-top: 1px solid #e5e5e5;"><td style="padding: 10px 0; color: #555; font-size: 13px; font-weight: 600;">Clínica</td><td style="padding: 10px 0; color: #111; font-size: 15px;">${safeClinica}</td></tr><tr style="border-top: 1px solid #e5e5e5;"><td style="padding: 10px 0; color: #555; font-size: 13px; font-weight: 600;">WhatsApp</td><td style="padding: 10px 0; font-size: 15px;"><a href="https://wa.me/55${data.whatsapp.replace(/\D/g, "")}" style="color: #16a34a; font-weight: 600;">${safeWhatsApp}</a></td></tr><tr style="border-top: 1px solid #e5e5e5;"><td style="padding: 10px 0; color: #555; font-size: 13px; font-weight: 600;">Maior dor</td><td style="padding: 10px 0; color: #111; font-size: 15px;">${safeDor}</td></tr><tr style="border-top: 1px solid #e5e5e5;"><td style="padding: 10px 0; color: #555; font-size: 13px; font-weight: 600;">Recebido em</td><td style="padding: 10px 0; color: #777; font-size: 13px;">${new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}</td></tr></table><div style="margin-top: 28px; text-align: center;"><a href="https://wa.me/55${data.whatsapp.replace(/\D/g, "")}" style="display: inline-block; padding: 14px 28px; background: #16a34a; color: #fff; border-radius: 8px; font-weight: 700; font-size: 15px;">Abrir WhatsApp do lead</a></div></div>`,
           }),
         });
         if (!res.ok) {

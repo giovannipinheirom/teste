@@ -586,23 +586,18 @@ function Hero() {
               />
             </div>
 
-            <Eyebrow className="mb-3 sm:mb-5">
-              ✦ Web Design & SEO para Dentistas
-            </Eyebrow>
-
             <h1 className="mt-0 max-w-full font-display text-[2.25rem] xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-[1.08] font-black tracking-tight text-foreground">
-              Sites que fazem sua clínica <span className="bg-gradient-to-r from-primary via-emerald-600 to-teal-500 bg-clip-text text-transparent italic py-1 pr-[0.15em] -mr-[0.15em]">agendar mais</span>.
+              Sites que fazem sua clínica <span className="text-primary">agendar mais</span>.
             </h1>
             {/* Parágrafo centralizado com boa largura de leitura no mobile */}
             <p className="mt-4 sm:mt-6 max-w-sm sm:max-w-xl text-sm sm:text-lg md:text-xl text-muted-foreground font-medium leading-relaxed">
               Transformamos visitantes em pacientes reais com design e estratégia pensados exclusivamente para o nicho odontológico.
             </p>
             <div className="mt-7 sm:mt-8 flex w-full max-w-xs sm:max-w-none flex-col sm:flex-row items-stretch sm:items-center justify-center lg:justify-start gap-3 sm:gap-4 md:mt-10">
-              <Button variant="cta" size="xl" className="w-full sm:w-auto relative overflow-hidden group shadow-xl shadow-primary/25 hover:shadow-primary/40 hover:scale-[1.02] transition-all" asChild>
+              <Button variant="cta" size="xl" className="w-full sm:w-auto" asChild>
                 <a href="#diagnostico" className="flex items-center justify-center gap-2">
-                  <span className="relative z-10 font-black">Quero meu diagnóstico gratuito</span>
-                  <ArrowRight className="size-4 shrink-0 relative z-10 group-hover:translate-x-1 transition-transform" />
-                  <span className="absolute inset-0 -translate-x-full group-hover:animate-shimmer bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none" />
+                  Quero meu diagnóstico gratuito
+                  <ArrowRight className="size-4 shrink-0" />
                 </a>
               </Button>
               <Button variant="ghost" size="lg" className="w-full sm:w-auto text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors" asChild>
@@ -618,72 +613,17 @@ function Hero() {
             </p>
           </div>
 
-          {/* Imagem: Mockup de Navegador com Badges Flutuantes */}
+          {/* Imagem (Responsiva em mobile e desktop) */}
           <div className="relative min-w-0 group order-2 mt-8 lg:mt-0 w-full max-w-md mx-auto lg:max-w-none block">
-            <div className="absolute -inset-4 rounded-[2.5rem] bg-gradient-to-br from-primary/25 via-teal-500/10 to-transparent blur-2xl opacity-70 group-hover:opacity-100 transition duration-1000 pointer-events-none animate-pulse-glow" />
-            
-            {/* Floating Badge: Top-Right (PageSpeed) */}
-            <div className="absolute -top-5 -right-5 z-20 hidden sm:flex items-center gap-2.5 rounded-2xl bg-white/95 px-4 py-2.5 shadow-2xl border border-primary/20 backdrop-blur-md animate-float">
-              <div className="flex size-8 items-center justify-center rounded-xl bg-primary/15 text-primary shadow-inner">
-                <Zap className="size-4.5 fill-primary" />
-              </div>
-              <div>
-                <p className="text-[11px] font-black text-foreground leading-tight">Google PageSpeed 99/100</p>
-                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Carregamento Instantâneo</p>
-              </div>
-            </div>
-
-            {/* Floating Badge: Bottom-Left (SEO Maps) */}
-            <div className="absolute -bottom-5 -left-5 z-20 hidden sm:flex items-center gap-2.5 rounded-2xl bg-white/95 px-4 py-2.5 shadow-2xl border border-primary/20 backdrop-blur-md animate-float-delayed">
-              <div className="flex size-8 items-center justify-center rounded-xl bg-emerald/15 text-emerald shadow-inner">
-                <MapPin className="size-4.5" />
-              </div>
-              <div>
-                <p className="text-[11px] font-black text-foreground leading-tight">SEO Local Ativado</p>
-                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">1º Lugar no Google Maps</p>
-              </div>
-            </div>
-
-            {/* Floating Pill: Center Right (Conversão WhatsApp) */}
-            <div className="absolute top-1/2 -right-4 -translate-y-1/2 z-20 hidden xl:flex items-center gap-2 rounded-full bg-navy/95 text-white px-3.5 py-1.5 shadow-xl border border-white/15 backdrop-blur-md animate-float-slow">
-              <div className="size-2 rounded-full bg-emerald animate-pulse" />
-              <span className="text-[10px] font-black tracking-wide">+42% Agendamentos no WhatsApp</span>
-            </div>
-
-            {/* Main Browser Mockup Window */}
-            <div className="relative overflow-hidden rounded-2xl sm:rounded-[2rem] border border-border/70 bg-card shadow-2xl shadow-primary/10">
-              {/* Browser Bar */}
-              <div className="flex items-center justify-between border-b border-border/60 bg-secondary/70 px-4 py-3 backdrop-blur-sm">
-                <div className="flex items-center gap-2">
-                  <div className="size-3 rounded-full bg-rose-400" />
-                  <div className="size-3 rounded-full bg-amber-400" />
-                  <div className="size-3 rounded-full bg-emerald-400" />
-                </div>
-                <div className="flex items-center gap-1.5 rounded-full bg-background/80 px-3.5 py-1 text-[10px] font-bold text-muted-foreground border border-border/60 shadow-xs max-w-[240px] truncate">
-                  <Lock className="size-3 text-emerald" />
-                  <span className="truncate">odontowebsites.com.br/modelos</span>
-                </div>
-                <div className="flex items-center gap-1 opacity-40">
-                  <div className="size-1.5 rounded-full bg-foreground" />
-                  <div className="size-1.5 rounded-full bg-foreground" />
-                  <div className="size-1.5 rounded-full bg-foreground" />
-                </div>
-              </div>
-
-              {/* Image inside mockup */}
-              <div className="relative aspect-[16/11] overflow-hidden bg-slate-900">
-                <img
-                  src={heroImg}
-                  alt="Dentista explicando diagnóstico para paciente em consultório odontológico"
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  loading="eager"
-                  decoding="async"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-navy/70 via-transparent to-transparent flex flex-col justify-end p-5">
-                  <span className="text-[9px] font-black uppercase tracking-[0.2em] text-primary">Layout Responsivo & Rápido</span>
-                  <p className="text-sm font-black text-white">Consultório Odontológico de Alto Padrão</p>
-                </div>
-              </div>
+            <div className="absolute -inset-2 rounded-[2rem] bg-gradient-to-br from-primary/30 via-primary/10 to-transparent blur-xl opacity-60 group-hover:opacity-80 transition duration-1000" />
+            <div className="relative overflow-hidden rounded-2xl sm:rounded-[2rem] border border-border/50 shadow-2xl shadow-primary/5">
+              <img
+                src={heroImg}
+                alt="Dentista explicando diagnóstico para paciente em consultório odontológico"
+                className="w-full h-auto object-cover aspect-[16/10] sm:aspect-[4/3] lg:aspect-[4/4] transition-transform duration-700 group-hover:scale-[1.02]"
+                loading="eager"
+                decoding="async"
+              />
             </div>
           </div>
         </div>
