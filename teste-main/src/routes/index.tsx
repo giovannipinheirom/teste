@@ -35,7 +35,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import logoImg from "@/assets/logo.png";
 import heroImg from "@/assets/hero-clinic.jpg";
 import smileClientsImg from "@/assets/smile-clients.jpg";
@@ -540,44 +539,34 @@ function Hero() {
 function SocialProofCarousel() {
   const reviews = [
     {
-      author: "Dra. Ana Beatriz",
+      author: "Ana Beatriz",
       clinic: "Sorriso & Arte",
-      text: "O site transmitiu exatamente a percepção de cuidado e seriedade que buscávamos. Os pacientes comentam a mudança logo na primeira consulta.",
-      tag: "Implantes",
-      avatar: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=200",
-      initials: "AB",
+      text: "Profissional extremamente qualificado e competente. Superou todas as expectativas com um atendimento atencioso, pontual e muito dedicado.",
+      tag: "Qualificação",
     },
     {
-      author: "Dr. Marcos Vinícius",
+      author: "Marcos Vinícius",
       clinic: "Vinícius Odontologia",
-      text: "O caminho até o WhatsApp ficou muito mais claro. Hoje o contato chega com a dúvida já resolvida pelo próprio site.",
-      tag: "Estética",
-      avatar: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=200",
-      initials: "MV",
+      text: "Excelente profissional! Muito dedicado, transparente e com um domínio técnico admirável. Transmite total confiança em cada etapa do trabalho.",
+      tag: "Comprometimento",
     },
     {
-      author: "Dra. Juliana Mendes",
+      author: "Juliana Mendes",
       clinic: "Mendes & Associados",
-      text: "Não parece um modelo pronto. O projeto foi construído a partir da nossa realidade clínica, e isso se nota no resultado final.",
-      tag: "Ortodontia",
-      avatar: "https://images.unsplash.com/photo-1594824476967-48c8b964273f?auto=format&fit=crop&q=80&w=200",
-      initials: "JM",
+      text: "Trabalho impecável e de altíssimo nível. Um profissional ético, atencioso e que realmente entende as necessidades do cliente. Recomendo de olhos fechados.",
+      tag: "Excelência",
     },
     {
-      author: "Dr. Ricardo Santos",
+      author: "Ricardo Santos",
       clinic: "Santos Dental Care",
-      text: "A estruturação do SEO local foi feita com critério. A clínica passou a ser encontrada com muito mais facilidade na região.",
-      tag: "Geral",
-      avatar: "https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&q=80&w=200",
-      initials: "RS",
+      text: "Profissional pontual, prestativo e muito resolutivo. A comunicação foi clara e transparente do início ao fim, com entrega impecável.",
+      tag: "Agilidade",
     },
     {
-      author: "Dra. Carla Dias",
+      author: "Carla Dias",
       clinic: "Dias Odonto",
-      text: "A recepção relata que os pacientes chegam mais preparados e decididos. O site cumpre boa parte da explicação antes do atendimento.",
-      tag: "Harmonização",
-      avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200",
-      initials: "CD",
+      text: "Competência, agilidade e muita atenção aos detalhes. É raro encontrar um profissional tão comprometido com a qualidade e a satisfação do cliente.",
+      tag: "Confiança",
     },
   ];
 
@@ -614,17 +603,9 @@ function SocialProofCarousel() {
                 </p>
               </div>
               <div className="mt-4 sm:mt-6 border-t border-border/40 pt-3 sm:pt-4 flex items-center justify-between">
-                <div className="flex items-center gap-2.5 sm:gap-3.5">
-                  <Avatar className="size-9 sm:size-10 border border-primary/20 shadow-sm shrink-0">
-                    <AvatarImage src={review.avatar} alt={review.author} className="object-cover" />
-                    <AvatarFallback className="bg-primary/10 text-primary font-display font-black text-xs">
-                      {review.initials}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="text-xs font-black text-foreground uppercase tracking-widest leading-none">{review.author}</p>
-                    <p className="mt-1 text-[9px] sm:text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{review.clinic}</p>
-                  </div>
+                <div>
+                  <p className="text-xs font-black text-foreground uppercase tracking-widest leading-none">{review.author}</p>
+                  <p className="mt-1 text-[9px] sm:text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{review.clinic}</p>
                 </div>
               </div>
             </div>
